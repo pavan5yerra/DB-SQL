@@ -671,3 +671,609 @@ WHERE  SALARY > ANY ( SELECT SALARY FROM CUSTOMERS WHERE AGE=32);
 
 ```
 
+
+
+```sql
+/*
+we are retrieving the details of all 
+the customers whose age is equal to the age
+ of any customer whose name starts with 'K'
+*/
+
+SELECT * FROM CUSTOMERS 
+WHERE SALARY <> 
+ALL (SELECT SALARY FROM CUSTOMERS WHERE AGE = 25);
+
++----+----------+-----+-----------+---------+
+| ID | NAME     | AGE | ADDRESS   | SALARY  |
++----+----------+-----+-----------+---------+
+|  2 | Khilan   |  25 | Delhi     | 1500.00 |
+|  3 | Kaushik  |  23 | Kota      | 2000.00 |
+|  4 | Chaitali |  25 | Mumbai    | 6500.00 |
+|  6 | Komal    |  22 | Hyderabad | 4500.00 |
++----+----------+-----+-----------+---------+
+
+/*
+details of all the customers whose salary is not
+ equal to the salary of any customer whose age is 25
+ */
+
+SELECT * FROM CUSTOMERS 
+WHERE SALARY <> ALL ( SELECT SALARY FROM CUSTOMERS WHERE AGE=25);
+
++----+---------+-----+-----------+----------+
+| ID | NAME    | AGE | ADDRESS   | SALARY   |
++----+---------+-----+-----------+----------+
+|  1 | Ramesh  |  32 | Ahmedabad |  2000.00 |
+|  3 | Kaushik |  23 | Kota      |  2000.00 |
+|  5 | Hardik  |  27 | Bhopal    |  8500.00 |
+|  6 | Komal   |  22 | Hyderabad |  4500.00 |
+|  7 | Muffy   |  24 | Indore    | 10000.00 |
++----+---------+-----+-----------+----------+
+
+
+
+/*
+retrieving the lists of the customers 
+with the price of the car greater than 2,000,000
+*/
+
+SELECT * FROM CUSTOMERS CU WHERE EXISTS
+( SELECT PRICE FROM  CARS C  WHERE C.ID = CU.ID  AND PRICE > 2000000);
+
+/*
++----+--------------+---------+
+| ID | NAME         | PRICE   |
++----+--------------+---------+
+|  2 | Maruti Swift |  450000 |
+|  4 | VOLVO        | 2250000 |
+|  7 | Toyota       | 2400000 |
++----+--------------+---------+
+*/
++----+----------+-----+---------+----------+
+| ID | NAME     | AGE | ADDRESS | SALARY   |
++----+----------+-----+---------+----------+
+|  4 | Chaitali |  25 | Mumbai  |  6500.00 |
+|  7 | Muffy    |  24 | Indore  | 10000.00 |
++----+----------+-----+---------+----------+
+
+
+/*
+gives the names of the customers who have not bought any car
+*/
+
+SELECT * FROM CUSTOMERS CU WHERE NOT EXISTS
+(SELECT * FROM CARS  C WHERE  CU.ID = C.ID);
+
++----+---------+-----+-----------+---------+
+| ID | NAME    | AGE | ADDRESS   | SALARY  |
++----+---------+-----+-----------+---------+
+|  1 | Ramesh  |  32 | Ahmedabad | 2000.00 |
+|  3 | Kaushik |  23 | Kota      | 2000.00 |
+|  5 | Hardik  |  27 | Bhopal    | 8500.00 |
+|  6 | Komal   |  22 | Hyderabad | 4500.00 |
++----+---------+-----+-----------+---------+
+
+
+/*
+If the AGE of the customer is greater than 30,
+ it returns Gen X otherwise moves to the further 
+ WHEN and THEN conditions. 
+ If none of the conditions is matched 
+ with the CUSTOMERS table, CASE returns the 'Gen Alpha'
+*/
+
+SELECT NAME , AGE , 
+CASE 
+WHEN AGE > 30 THEN 'GEN-X'
+WHEN AGE > 24 THEN 'GEN-Y'
+WHEN AGE > 22 THEN 'GNE-Z'
+ELSE 'GEN-ALPHA'
+END AS GENERATION FROM CUSTOMERS;
+
++----------+-----+------------+
+| NAME     | AGE | GENERATION |
++----------+-----+------------+
+| Ramesh   |  32 | GEN-X      |
+| Khilan   |  25 | GEN-Y      |
+| Kaushik  |  23 | GNE-Z      |
+| Chaitali |  25 | GEN-Y      |
+| Hardik   |  27 | GEN-Y      |
+| Komal    |  22 | GEN-ALPHA  |
+| Muffy    |  24 | GNE-Z      |
++----------+-----+------------+
+
+
+/*
+where we want to provide a 25% increment to each customer
+ if the amount is less than 4500 from the CUSTOMERS
+*/
+
+SELECT * ,
+CASE 
+WHEN SALARY < 4500  THEN (SALARY + SALARY * 25/100)
+END AS AFTER_INCREMENT FROM CUSTOMERS;
+
+
++----+----------+-----+-----------+----------+-----------------+
+| ID | NAME     | AGE | ADDRESS   | SALARY   | AFTER_INCREMENT |
++----+----------+-----+-----------+----------+-----------------+
+|  1 | Ramesh   |  32 | Ahmedabad |  2000.00 |     2500.000000 |
+|  2 | Khilan   |  25 | Delhi     |  1500.00 |     1875.000000 |
+|  3 | Kaushik  |  23 | Kota      |  2000.00 |     2500.000000 |
+|  4 | Chaitali |  25 | Mumbai    |  6500.00 |            NULL |
+|  5 | Hardik   |  27 | Bhopal    |  8500.00 |            NULL |
+|  6 | Komal    |  22 | Hyderabad |  4500.00 |            NULL |
+|  7 | Muffy    |  24 | Indore    | 10000.00 |            NULL |
++----+----------+-----+-----------+----------+-----------------+
+
+
+/*
+If the age of the customer is equal to '25',
+ their salary will be updated to '17000'. 
+ If the age is equal to '32', it will be updated to '25000'.
+  For the customers with other ages, salaries will be updated to '12000'
+*/
+
+
+UPDATE CUSTOMERS SET  SALARY = 
+CASE 
+WHEN  AGE=25 THEN  17000
+WHEN  AGE=32 THEN  25000
+ELSE 12000
+END;
+
+ (OR) 
+ 
+UPDATE CUSTOMERS SET  SALARY = 
+CASE AGE
+WHEN  25 THEN  17000
+WHEN  32 THEN  25000
+ELSE 12000
+END;
+
+
++----+----------+-----+-----------+----------+
+| ID | NAME     | AGE | ADDRESS   | SALARY   |
++----+----------+-----+-----------+----------+
+|  1 | Ramesh   |  32 | Ahmedabad | 25000.00 |
+|  2 | Khilan   |  25 | Delhi     | 17000.00 |
+|  3 | Kaushik  |  23 | Kota      | 12000.00 |
+|  4 | Chaitali |  25 | Mumbai    | 17000.00 |
+|  5 | Hardik   |  27 | Bhopal    | 12000.00 |
+|  6 | Komal    |  22 | Hyderabad | 12000.00 |
+|  7 | Muffy    |  24 | Indore    | 12000.00 |
++----+----------+-----+-----------+----------+
+
+
+/*
+we are retrieving all the customers whose salary
+ is either ">2000" or "=2000". At the same time, 
+ the customer must not be from "Bhopal"
+*/
+
+SELECT * FROM CUSTOMERS WHERE ADDRESS <> 'Bhopal' AND (SALARY >=2000);
+
++----+----------+-----+-----------+----------+
+| ID | NAME     | AGE | ADDRESS   | SALARY   |
++----+----------+-----+-----------+----------+
+|  1 | Ramesh   |  32 | Ahmedabad |  2000.00 |
+|  3 | Kaushik  |  23 | Kota      |  2000.00 |
+|  4 | Chaitali |  25 | Mumbai    |  6500.00 |
+|  6 | Komal    |  22 | Hyderabad |  4500.00 |
+|  7 | Muffy    |  24 | Indore    | 10000.00 |
++----+----------+-----+-----------+----------+
+
+
+
+/*
+returns the count of records have a blank field (NULL)
+ in SALARY column of the CUSTOMERS table
+*/
+
+SELECT  COUNT(*) FROM CUSTOMERS WHERE SALARY IS NULL;
++----------+
+| COUNT(*) |
++----------+
+|        2 |
++----------+
+
+
+
+```
+
+
+
+
+## SET  OPERATORS
+- UNION operator is used to combine data from multiple tables by **eliminating duplicate rows** (if any).
+- all these tables must be union compatible.
+    - The same number of columns selected with the same datatype.
+    - These columns must also be in the same order.
+    - They need not have same number of rows.
+-  The difference between these two operators is that UNION only returns distinct rows while UNION ALL returns all the rows present in the tables.
+
+```sql
+## UNION ##
+
+
+  CREATE TABLE CUSTOMERS (
+     ID INT NOT NULL,
+     NAME VARCHAR (20) NOT NULL,
+     AGE INT NOT NULL,
+     ADDRESS CHAR (25),
+     SALARY DECIMAL (18, 2),       
+     PRIMARY KEY (ID)
+  );
+  
+  INSERT INTO CUSTOMERS VALUES
+  (1, 'Ramesh', 32, 'Ahmedabad', 2000.00),
+  (2, 'Khilan', 25, 'Delhi', 1500.00),
+  (3, 'Kaushik', 23, 'Kota', 2000.00),
+  (4, 'Chaitali', 25, 'Mumbai', 6500.00),
+  (5, 'Hardik', 27, 'Bhopal', 8500.00),
+  (6, 'Komal', 22, 'Hyderabad', 4500.00),
+  (7, 'Muffy', 24, 'Indore', 10000.00);
+  
+  
+  
+  CREATE TABLE ORDERS (
+     OID INT NOT NULL,
+     DATE DATETIME NOT NULL,
+     CUSTOMER_ID INT NOT NULL,
+     AMOUNT INT NOT NULL,      
+     PRIMARY KEY (OID)
+  );
+  
+  INSERT INTO ORDERS VALUES
+  (102, '2009-10-08 00:00:00', 3, 3000),
+  (100, '2009-10-08 00:00:00', 3, 1500),
+  (101, '2009-11-20 00:00:00', 2, 1560),
+  (103, '2008-05-20 00:00:00', 4, 2060);
+  
+  
+  /*
+  COMBINE SALARY AND AMOUNT FROM BOTH THE TABLES
+*/
+
+SELECT SALARY FROM CUSTOMERS UNION SELECT AMOUNT FROM ORDERS;
+
++----------+
+| SALARY   |
++----------+
+|  2000.00 |
+|  1500.00 |
+|  6500.00 |
+|  8500.00 |
+|  4500.00 |
+| 10000.00 |
+|  1560.00 |
+|  3000.00 |
+|  2060.00 |
++----------+
+
+
+
+/*
+As the CUSTOMERS and ORDERS tables are not union-compatible individually,
+let us first join these two tables into a bigger table using Left Join and
+Right Join. The joined tables retrieved will have same number of columns 
+with same datatypes, becoming union compatible. 
+Now, these tables are combined using UNION
+*/
+
+
+SELECT  ID, NAME, SALARY,  AMOUNT, DATE FROM CUSTOMERS
+LEFT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID;
+
++----+----------+----------+--------+---------------------+
+| ID | NAME     | SALARY   | AMOUNT | DATE                |
++----+----------+----------+--------+---------------------+
+|  1 | Ramesh   |  2000.00 |   NULL | NULL                |
+|  2 | Khilan   |  1500.00 |   1560 | 2009-11-20 00:00:00 |
+|  3 | Kaushik  |  2000.00 |   3000 | 2009-10-08 00:00:00 |
+|  3 | Kaushik  |  2000.00 |   1500 | 2009-10-08 00:00:00 |
+|  4 | Chaitali |  6500.00 |   2060 | 2008-05-20 00:00:00 |
+|  5 | Hardik   |  8500.00 |   NULL | NULL                |
+|  6 | Komal    |  4500.00 |   NULL | NULL                |
+|  7 | Muffy    | 10000.00 |   NULL | NULL                |
++----+----------+----------+--------+---------------------+
+
+SELECT  ID, NAME, SALARY,  AMOUNT, DATE FROM CUSTOMERS
+RIGHT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID;
+
++------+----------+---------+--------+---------------------+
+| ID   | NAME     | SALARY  | AMOUNT | DATE                |
++------+----------+---------+--------+---------------------+
+|    3 | Kaushik  | 2000.00 |   1500 | 2009-10-08 00:00:00 |
+|    2 | Khilan   | 1500.00 |   1560 | 2009-11-20 00:00:00 |
+|    3 | Kaushik  | 2000.00 |   3000 | 2009-10-08 00:00:00 |
+|    4 | Chaitali | 6500.00 |   2060 | 2008-05-20 00:00:00 |
++------+----------+---------+--------+---------------------+
+
+SELECT  ID, NAME, AMOUNT, DATE FROM CUSTOMERS
+LEFT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID
+UNION
+SELECT  ID, NAME, AMOUNT, DATE FROM CUSTOMERS
+RIGHT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID;
+
+
++------+----------+----------+--------+---------------------+
+| ID   | NAME     | SALARY   | AMOUNT | DATE                |
++------+----------+----------+--------+---------------------+
+|    1 | Ramesh   |  2000.00 |   NULL | NULL                |
+|    2 | Khilan   |  1500.00 |   1560 | 2009-11-20 00:00:00 |
+|    3 | Kaushik  |  2000.00 |   3000 | 2009-10-08 00:00:00 |
+|    3 | Kaushik  |  2000.00 |   1500 | 2009-10-08 00:00:00 |
+|    4 | Chaitali |  6500.00 |   2060 | 2008-05-20 00:00:00 |
+|    5 | Hardik   |  8500.00 |   NULL | NULL                |
+|    6 | Komal    |  4500.00 |   NULL | NULL                |
+|    7 | Muffy    | 10000.00 |   NULL | NULL                |
++------+----------+----------+--------+---------------------+
+ 
+
+CREATE TABLE STUDENTS(
+   ID INT NOT NULL, 
+   NAME VARCHAR(20) NOT NULL, 
+   SUBJECT VARCHAR(20) NOT NULL, 
+   AGE INT NOT NULL, 
+   HOBBY VARCHAR(20) NOT NULL, 
+   PRIMARY KEY(ID)
+);
+
+INSERT INTO STUDENTS VALUES
+(1, 'Naina', 'Maths', 24, 'Cricket'),
+(2, 'Varun', 'Physics', 26, 'Football'),
+(3, 'Dev', 'Maths', 23, 'Cricket'),
+(4, 'Priya', 'Physics', 25, 'Cricket'),
+(5, 'Aditya', 'Chemistry', 21, 'Cricket'),
+(6, 'Kalyan', 'Maths', 30, 'Football');
+
+CREATE TABLE STUDENTS_HOBBY(
+   ID INT NOT NULL, 
+   NAME VARCHAR(20) NOT NULL, 
+   HOBBY VARCHAR(20) NOT NULL, 
+   AGE INT NOT NULL, 
+   PRIMARY KEY(ID)
+);
+
+INSERT INTO STUDENTS_HOBBY VALUES
+(1, 'Vijay', 'Cricket', 18),
+(2, 'Varun', 'Football', 26),
+(3, 'Surya', 'Cricket', 19),
+(4, 'Karthik', 'Cricket', 25),
+(5, 'Sunny', 'Football', 26),
+(6, 'Dev', 'Cricket', 23);
+
+
+SELECT SH.NAME, SH.AGE, SH.HOBBY FROM STUDENTS_HOBBY SH 
+INNER JOIN STUDENTS S WHERE SH.ID = S.ID AND SH.AGE = S.AGE;
+
+
++---------+-----+----------+
+| NAME    | AGE | HOBBY    |
++---------+-----+----------+
+| Varun   |  26 | Football |
+| Karthik |  25 | Cricket  |
++---------+-----+----------+
+
+SELECT NAME , AGE , HOBBY FROM STUDENTS S WHERE S.ID  IN 
+(SELECT ID FROM STUDENTS_HOBBY SH WHERE  S.AGE = SH.AGE);
+
++-------+-----+----------+
+| NAME  | AGE | HOBBY    |
++-------+-----+----------+
+| Varun |  26 | Football |
+| Priya |  25 | Cricket  |
++-------+-----+----------+
+```
+
+
+
+
+## JOINS : 
+
+
+### INNER JOINS :  
+- An  [**﻿INNER JOIN**](https://www.tutorialspoint.com/sql/sql-inner-joins.htm)** ** is the default join which retrieves the intersection of two tables.
+### OUTER JOINS : 
+An Outer Join retrieves all the records in two tables even if there is no counterpart row of one table in another table.
+
+- [﻿LEFT JOIN](https://www.tutorialspoint.com/sql/sql-left-joins.htm)  − returns all rows from the left table, even if there are no matches in the right table.
+- [﻿RIGHT JOIN](https://www.tutorialspoint.com/sql/sql-right-joins.htm)  − returns all rows from the right table, even if there are no matches in the left table.
+- [﻿FULL JOIN](https://www.tutorialspoint.com/sql/sql-full-joins.htm)  − returns rows when there is a match in one of the tables.
+- [﻿SELF JOIN](https://www.tutorialspoint.com/sql/sql-self-joins.htm)  − is used to join a table to itself as if the table were two tables, temporarily renaming at least one table in the SQL statement.
+- [﻿CROSS Join](https://www.tutorialspoint.com/sql/sql-cross-join.htm)  − returns the Cartesian product of the sets of records from the two or more joined tables.
+
+
+![image.png](https://eraser.imgix.net/workspaces/RHvayis7uYQNdrSqkxAk/2TpPe0m2nPZODyVZctbl8Rh7kLL2/VChBImuD0cZOwvXE-pnxX.png?ixlib=js-3.7.0 "image.png")
+
+
+
+```sql
+CREATE TABLE CUSTOMERS (
+   ID INT NOT NULL,
+   NAME VARCHAR (20) NOT NULL,
+   AGE INT NOT NULL,
+   ADDRESS CHAR (25),
+   SALARY DECIMAL (18, 2),       
+   PRIMARY KEY (ID)
+);
+
+CREATE TABLE ORDERS (
+   OID INT NOT NULL,
+   DATE VARCHAR (20) NOT NULL,
+   CUSTOMER_ID INT NOT NULL,
+   AMOUNT DECIMAL (18, 2)
+);
+
+CREATE TABLE EMPLOYEE (
+   EID INT NOT NULL,
+   EMPLOYEE_NAME VARCHAR (30) NOT NULL,
+   SALES_MADE DECIMAL (20)
+);
+
+INSERT INTO CUSTOMERS VALUES
+(1, 'Ramesh', 32, 'Ahmedabad', 2000.00 ),
+(2, 'Khilan', 25, 'Delhi', 1500.00 ),
+(3, 'Kaushik', 23, 'Kota', 2000.00 ),
+(4, 'Chaitali', 25, 'Mumbai', 6500.00 ),
+(5, 'Hardik', 27, 'Bhopal', 8500.00 ),
+(6, 'Komal', 22, 'Hyderabad', 4500.00 ),
+(7, 'Muffy', 24, 'Indore', 10000.00 );
+
+
+INSERT INTO ORDERS VALUES 
+(102, '2009-10-08 00:00:00', 3, 3000.00),
+(100, '2009-10-08 00:00:00', 3, 1500.00),
+(101, '2009-11-20 00:00:00', 2, 1560.00),
+(103, '2008-05-20 00:00:00', 4, 2060.00);
+
+
+INSERT INTO EMPLOYEE VALUES
+(102, 'SARIKA', 4500),
+(100, 'ALEKHYA', 3623),
+(101, 'REVATHI', 1291),
+(103, 'VIVEK', 3426);
+
+SELECT * FROM CUSTOMERS;
+SELECT * FROM ORDERS;
+SELECT * FROM EMPLOYEE;
+
+
+
+SELECT * FROM CUSTOMERS C INNER JOIN ORDERS O ON C.ID = O.CUSTOMER_ID;
+
++----+----------+-----+---------+---------+-----+---------------------+-------------+---------+
+| ID | NAME     | AGE | ADDRESS | SALARY  | OID | DATE                | CUSTOMER_ID | AMOUNT  |
++----+----------+-----+---------+---------+-----+---------------------+-------------+---------+
+|  3 | Kaushik  |  23 | Kota    | 2000.00 | 102 | 2009-10-08 00:00:00 |           3 | 3000.00 |
+|  3 | Kaushik  |  23 | Kota    | 2000.00 | 100 | 2009-10-08 00:00:00 |           3 | 1500.00 |
+|  2 | Khilan   |  25 | Delhi   | 1500.00 | 101 | 2009-11-20 00:00:00 |           2 | 1560.00 |
+|  4 | Chaitali |  25 | Mumbai  | 6500.00 | 103 | 2008-05-20 00:00:00 |           4 | 2060.00 |
++----+----------+-----+---------+---------+-----+---------------------+-------------+---------+
+
+SELECT * FROM CUSTOMERS C
+INNER JOIN ORDERS O ON C.ID = O.CUSTOMER_ID
+INNER JOIN EMPLOYEE E ON O.OID = E.EID;
+
+
++----+----------+-----+---------+---------+-----+---------------------+-------------+---------+-----+---------------+------------+
+| ID | NAME     | AGE | ADDRESS | SALARY  | OID | DATE                | CUSTOMER_ID | AMOUNT  | EID | EMPLOYEE_NAME | SALES_MADE |
++----+----------+-----+---------+---------+-----+---------------------+-------------+---------+-----+---------------+------------+
+|  3 | Kaushik  |  23 | Kota    | 2000.00 | 102 | 2009-10-08 00:00:00 |           3 | 3000.00 | 102 | SARIKA        |       4500 |
+|  3 | Kaushik  |  23 | Kota    | 2000.00 | 100 | 2009-10-08 00:00:00 |           3 | 1500.00 | 100 | ALEKHYA       |       3623 |
+|  2 | Khilan   |  25 | Delhi   | 1500.00 | 101 | 2009-11-20 00:00:00 |           2 | 1560.00 | 101 | REVATHI       |       1291 |
+|  4 | Chaitali |  25 | Mumbai  | 6500.00 | 103 | 2008-05-20 00:00:00 |           4 | 2060.00 | 103 | VIVEK         |       3426 |
++----+----------+-----+---------+---------+-----+---------------------+-------------+---------+-----+---------------+------------+
+
+
+SELECT ID, NAME, DATE, AMOUNT FROM CUSTOMERS
+INNER JOIN ORDERS
+ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID
+WHERE ORDERS.AMOUNT > 2000.00;
+
++----+----------+---------------------+---------+
+| ID | NAME     | DATE                | AMOUNT  |
++----+----------+---------------------+---------+
+|  3 | Kaushik  | 2009-10-08 00:00:00 | 3000.00 |
+|  4 | Chaitali | 2008-05-20 00:00:00 | 2060.00 |
++----+----------+---------------------+---------+
+
+```
+
+
+
+
+```sql
+SELECT ID, NAME, AMOUNT, OID ,  DATE
+FROM CUSTOMERS
+LEFT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID;
+
++----+----------+---------+------+---------------------+
+| ID | NAME     | AMOUNT  | OID  | DATE                |
++----+----------+---------+------+---------------------+
+|  1 | Ramesh   |    NULL | NULL | NULL                |
+|  2 | Khilan   | 1560.00 |  101 | 2009-11-20 00:00:00 |
+|  3 | Kaushik  | 1500.00 |  100 | 2009-10-08 00:00:00 |
+|  3 | Kaushik  | 3000.00 |  102 | 2009-10-08 00:00:00 |
+|  4 | Chaitali | 2060.00 |  103 | 2008-05-20 00:00:00 |
+|  5 | Hardik   |    NULL | NULL | NULL                |
+|  6 | Komal    |    NULL | NULL | NULL                |
+|  7 | Muffy    |    NULL | NULL | NULL                |
++----+----------+---------+------+---------------------+
+
+
+
+SELECT ID, NAME, AMOUNT, OID ,  DATE , EID , EMPLOYEE_NAME
+FROM CUSTOMERS
+LEFT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID
+LEFT JOIN EMPLOYEE ON EMPLOYEE.EID = ORDERS.OID;
+
++----+----------+---------+------+---------------------+------+---------------+
+| ID | NAME     | AMOUNT  | OID  | DATE                | EID  | EMPLOYEE_NAME |
++----+----------+---------+------+---------------------+------+---------------+
+|  1 | Ramesh   |    NULL | NULL | NULL                | NULL | NULL          |
+|  2 | Khilan   | 1560.00 |  101 | 2009-11-20 00:00:00 |  101 | REVATHI       |
+|  3 | Kaushik  | 1500.00 |  100 | 2009-10-08 00:00:00 |  100 | ALEKHYA       |
+|  3 | Kaushik  | 3000.00 |  102 | 2009-10-08 00:00:00 |  102 | SARIKA        |
+|  4 | Chaitali | 2060.00 |  103 | 2008-05-20 00:00:00 | NULL | NULL          |
+|  5 | Hardik   |    NULL | NULL | NULL                | NULL | NULL          |
+|  6 | Komal    |    NULL | NULL | NULL                | NULL | NULL          |
+|  7 | Muffy    |    NULL | NULL | NULL                | NULL | NULL          |
++----+----------+---------+------+---------------------+------+---------------+
+
+
+
+```
+
+
+```sql
+SELECT ID, NAME, SALARY , AMOUNT, DATE
+FROM CUSTOMERS
+RIGHT JOIN ORDERS
+ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID;
+
+
++------+----------+---------+---------+---------------------+
+| ID   | NAME     | SALARY  | AMOUNT  | DATE                |
++------+----------+---------+---------+---------------------+
+|    3 | Kaushik  | 2000.00 | 3000.00 | 2009-10-08 00:00:00 |
+|    3 | Kaushik  | 2000.00 | 1500.00 | 2009-10-08 00:00:00 |
+|    2 | Khilan   | 1500.00 | 1560.00 | 2009-11-20 00:00:00 |
+|    4 | Chaitali | 6500.00 | 2060.00 | 2008-05-20 00:00:00 |
++------+----------+---------+---------+---------------------+
+
+```
+
+
+### FULL OUTER JOIN 
+_MySQL does not support Full Outer Join. Instead, you can imitate its working by performing union operation between the result-sets obtained from Left Join and Right Join._
+
+
+
+```sql
+SELECT  ID, NAME, AMOUNT, DATE FROM CUSTOMERS
+LEFT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID
+UNION
+SELECT  ID, NAME, AMOUNT, DATE FROM CUSTOMERS
+RIGHT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.CUSTOMER_ID;
+
++------+----------+---------+---------------------+
+| ID   | NAME     | AMOUNT  | DATE                |
++------+----------+---------+---------------------+
+|    1 | Ramesh   |    NULL | NULL                |
+|    2 | Khilan   | 1560.00 | 2009-11-20 00:00:00 |
+|    3 | Kaushik  | 1500.00 | 2009-10-08 00:00:00 |
+|    3 | Kaushik  | 3000.00 | 2009-10-08 00:00:00 |
+|    4 | Chaitali | 2060.00 | 2008-05-20 00:00:00 |
+|    5 | Hardik   |    NULL | NULL                |
+|    6 | Komal    |    NULL | NULL                |
+|    7 | Muffy    |    NULL | NULL                |
++------+----------+---------+---------------------+
+```
+
+
+
+
+
