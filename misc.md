@@ -190,3 +190,101 @@ END;
 ```
 
 
+### SQL injection Attacks.
+
+
+### Basic SQL INJECTION attack :
+```sql
+SELECT * FROM products WHERE name = 'user_input';
+```
+If a user enters:
+
+```sql
+' OR '1'='1
+```
+The query becomes:
+
+```sql
+SELECT * FROM products WHERE name = '' OR '1'='1';
+
+-->The above query provide all the data of the table
+```
+
+
+### Error Based Injection : 
+
+
+```sql
+SELECT * FROM products WHERE product_id = '101' 
+AND (SELECT 1 FROM non_existent_table)='';
+
+--> ERROR: Table 'database_name.non_existent_table' doesn't exist
+
+
+
+SELECT * FROM products WHERE product_id = '101' 
+AND (SELECT 1 FROM information_schema.tables WHERE table_name='users')=';
+
+
+```
+
+
+
+
+### Prevention Techniques :
+
+
+**Use Prepared Statements (Parameterized Queries)**:
+
+```sql
+const mysql = require('mysql2');
+
+// Create a connection to the database
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'your_username',
+    password: 'your_password',
+    database: 'your_database'
+});
+
+// Prepare the SQL query with placeholders
+const sql = 'SELECT * FROM users WHERE username = ? AND password = ?';
+
+// User inputs
+const username = 'exampleUser';
+const password = 'examplePass';
+
+// Execute the prepared statement
+connection.execute(sql, [username, password], (err, results, fields) => {
+    if (err) {
+        console.error('Error executing query:', err.message);
+        return;
+    }
+
+    console.log('Results:', results);
+});
+
+// Close the connection
+connection.end();
+```
+- Prepared statements ensure that user input is treated as data, not executable code. For example, in PHP with PDO:
+**Stored Procedures**:
+
+- Stored procedures are precompiled collections of SQL statements. They can be designed to handle user inputs safely.
+**Input Validation**:
+
+- Ensure that user inputs conform to expected formats (e.g., string length, allowed characters) before including them in queries.
+**Escaping User Inputs**:
+
+- Escaping characters in user inputs ensures that special characters are treated as literals rather than executable code.
+**Least Privilege**:
+
+- The application should connect to the database using an account with the least privilege necessary. This limits the damage that can be done if an injection occurs.
+**Web Application Firewalls (WAFs)**:
+
+- WAFs can detect and block SQL injection attempts by filtering malicious traffic.
+**Regular Security Audits**:
+
+- Regularly test and audit your code for vulnerabilities, especially SQL injection;
+
+
