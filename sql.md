@@ -1364,6 +1364,38 @@ REFERENCES CUSTOMERS(ID),
 
 
 
+## Indexes :
+- These are special lookup tables , which will speed the process of data retrival
+
+
+```sql
+CREATE INDEX index_name ON table_name;
+```
+### Types of Indexes :
+- Unique Index
+    - These are not only for performance  , it also allows duplicate columns in table.
+    - It is automatically created by PRIMARY and UNIQUE constraints
+```sql
+CREATE UNIQUE INDEX index_name
+on table_name (column_name);
+```
+- Single-Column Index
+    - A single-column index is created only on one table column.
+```sql
+CREATE INDEX index_name
+ON table_name (column_name);
+```
+- Composite Index
+    - A composite index is an index that can be created on two or more columns of a table.
+```sql
+CREATE INDEX index_name
+on table_name (column1, column2);
+```
+- Implicit Index
+    - Implicit indexes are indexes that are automatically created by the database
+    - indexes are automatically created when primary key and unique constraints are created 
+
+
 
 
 
