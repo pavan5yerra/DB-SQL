@@ -118,3 +118,75 @@ on table_name (column1, column2);
 - Implicit Index
     - Implicit indexes are indexes that are automatically created by the database
     - indexes are automatically created when primary key and unique constraints are created 
+
+
+
+
+## Triggers :
+- It is set of instruction that are automatically executed when specific DML (`INSERT`, `UPDATE`, or `DELETE) `operations takes place in a database
+
+
+### Types of Triggers : 
+- Before triggers  : `BEFORE INSERT` trigger will execute before  trigger event takes place 
+- After Triggers : These triggers are executed after the triggering event occurs
+
+
+### Uses:
+- **Auditing**: Keep track of changes in a table by logging changes to an audit table.
+- **Data Validation**: Ensure that data meets specific criteria before allowing it to be inserted or updated.
+- **Cascading Updates/Deletes**: Automatically update or delete related records in other tables.
+- **Automatic Calculations**: Perform calculations and store results automatically when certain conditions are met.
+
+
+```sql
+## AUDITING ##
+
+CREATE TRIGGER after_insert_orders
+AFTER INSERT ON orders
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_log (order_id, action, created_at)
+    VALUES (NEW.id, 'INSERT', NOW());
+END;
+
+/*
+This trigger logs deletions from the employees table 
+into a deleted_employees archive table.
+*/
+
+CREATE TRIGGER after_delete_employees
+AFTER DELETE ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO deleted_employees (employee_id, name, deleted_at)
+    VALUES (OLD.id, OLD.name, NOW());
+END;
+
+
+## CALCULATIONS ##
+/*
+adjusts the total_sales in the sales_summary table
+ by subtracting the old amount and adding the new amount 
+ for the corresponding order_date.
+*/
+
+CREATE TRIGGER  calculate_sales_summary
+BEFORE INSERT ON ORDERS
+FOR EACH ROW
+BEGIN
+     UPDATE SALE_SUMMARY
+     SET TOATAL_SALES = total_sales - OLD.amount + NEW.amount
+     WHERE date = NEW.order_date;
+END;
+
+
+CREATE TRIGGER before_insert_users
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+    SET NEW.username = LOWER(NEW.username);
+END;
+
+```
+
+
